@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 import re
 import requests
+import time
+import sys
 from bs4 import BeautifulSoup as bs
 
 '''
@@ -10,6 +12,7 @@ These functions aquire data from all jeopardy games from a given game date on.
 Data pulled includes:
 - Show ID
 - Year of Show
+- Month of Show
 - Round (Jeopardy, Double Jeopardy, Final Jeopardy)
 - Category
 - Clue Value
@@ -21,7 +24,11 @@ Data pulled includes:
 
 The final function is the full acquisition function.
 
-NEXT UPGRADES - Existing CSV checker, Add Comments into category
+NEXT UPGRADES - 
+1. Existing CSV checker/auto updater
+2. Add Comments into category
+3. Autotitle output files
+4. Get show #6087 (IBM Watson challenge game 1, DJ and Final Round)
 '''
 
 def is_dd(url):
@@ -58,7 +65,7 @@ def is_dd(url):
 
 def answers(url):
     '''
-    This function pulls all the answers to clues for a show as well as determines if they are a tiple stumper
+    This function pulls all the answers to clues for a show as well as determines if they are a triple stumper
     '''
     # Creates a Beautiful Soup object from the show's page
     r = requests.get(url)
@@ -81,7 +88,7 @@ def answers(url):
             try:
                 ans = clue.find('div', onmouseover = True).get('onmouseover')
             except:
-                counter +=1
+                indexer +=1
                 continue
             cls = bs(ans, 'html.parser')
             answer['answer'] = cls.find('em').text
@@ -109,6 +116,7 @@ def j_qs(url):
     show_info = soup.find('div', attrs = {'id':'game_title'}).text
     show_num = re.findall(r'\d+', show_info)[0]
     show_yr = re.findall(r'\d+', show_info)[2]  
+    show_mo = re.findall(r'[a-zA-Z]{2,}', show_info)[2]
 
     # Jeopardy clue value list
     j_value = ['200','400','600','800','1000'] 
@@ -131,6 +139,7 @@ def j_qs(url):
             
             question['show_num'] = show_num
             question['show_yr'] = show_yr
+            question['show_mo'] = show_mo
             question['round'] = 'Jeopardy'
             question['category'] = j_categories[i]
             question['value'] = j_value[j]
@@ -161,6 +170,7 @@ def dj_qs(url):
     show_info = soup.find('div', attrs = {'id':'game_title'}).text
     show_num = re.findall(r'\d+', show_info)[0]
     show_yr = re.findall(r'\d+', show_info)[2]
+    show_mo = re.findall(r'[a-zA-Z]{2,}', show_info)[2]
 
     # Double Jeopardy clue value list
     dj_value = ['400','800','1200','1600','2000']
@@ -184,6 +194,7 @@ def dj_qs(url):
 
             question['show_num'] = show_num
             question['show_yr'] = show_yr
+            question['show_mo'] = show_mo
             question['round'] = 'Double Jeopardy'
             question['category'] = dj_categories[i]
             question['value'] = dj_value[j]
@@ -214,6 +225,7 @@ def fj(url):
     show_info = soup.find('div', attrs = {'id':'game_title'}).text
     show_num = re.findall(r'\d+', show_info)[0]
     show_yr = re.findall(r'\d+', show_info)[2]
+    show_mo = re.findall(r'[a-zA-Z]{2,}', show_info)[2]
 
     # Creates soup of final round html
     fj = soup.find('table', class_ = 'final_round')
@@ -222,6 +234,7 @@ def fj(url):
     f_j = {}
     f_j['show_num'] = show_num
     f_j['show_yr'] = show_yr
+    f_j['show_mo'] = show_mo
     f_j['round'] = 'Final Jeopardy'
     f_j['value'] = 'FJ'
     f_j['is_DD'] = 0
@@ -288,6 +301,8 @@ def acquire_show(url):
     df_game = show_dataframe(df_dd, df_ans, df_j_qs, df_dj_qs, df_fj)
     df_game = add_level(df_game)
 
+    #!# When used to pull singles games:
+    df_game.to_csv('jeopardy_games.csv')
     # Returns a dataframe
     return df_game
 
@@ -320,13 +335,23 @@ def acquire_shows(start_page):
         show_id = re.findall(r'game_id=\d+',url)[0]
         print(f'Scraping page {counter}: {show_id}')
         # Pulls in show and appends it to the current clue dataframe
-        df_game = acquire_show(url)
-        print(f'Clue Bank Size = {output.shape[0]}')
+        try:
+            df_game = acquire_show(url)
+        except:
+            print(f'Failed timeout on show_id {show_id}, file saved from previous show.')
+            break
+
         output = pd.concat([output,df_game])
+        print(f'Clue Bank Size = {output.shape[0]}')
         
         # Creates a Beautiful Soup object from the newest page
-        r = requests.get(url)
-        soup = bs(r.content, 'html.parser')
+        # IN future, create nested try/excepts to create a break for the requests
+        try:
+            r = requests.get(url)
+            soup = bs(r.content, 'html.parser')
+        except:
+            print(f'Scrape halted after show_id {show_id}, file saved.')
+            break
         
         # Finds the next page for the next loop, try/except due to error at the end
         next_list = soup.find('table', attrs = {'id':'contestants_table'})
@@ -337,9 +362,39 @@ def acquire_shows(start_page):
         url = base_url + next_url
         checker = len(next_list.select('a'))
         counter += 1
+        time.sleep(.5)
+
     output.to_csv('jeopardy_games.csv')
     # Great job, function!
     print('Done Scraping!')
     
     # Returns a dataframe
     return output  
+
+'''
+You can run the acquire_shows function from the command line like a pro!
+While in the directory in the terminal, type >> python acquire.py acquire_shows {short url}
+{short url} = the specific game url component such as 'showgame.php?game_id=7409'
+'''
+if __name__ == '__main__':
+    globals()[sys.argv[1]](sys.argv[2])
+
+def merge_dataframes(dataframe_list):
+    path = 'cached_games/'
+    new_list = [f'{path}{n}.csv' for n in dataframe_list]
+
+    master_list = pd.DataFrame()
+    counter = 0
+
+    for df_name in new_list:
+        df = pd.read_csv(df_name, converters={'answer' : str})
+        df = df.drop(columns = 'Unnamed: 0')
+        master_list = pd.concat([master_list,df])
+        counter += 1
+    
+    master_list = master_list.reset_index()
+    print(f'Successfully combined {counter} files into master list.')
+
+    master_list.to_csv('master_question_list.csv')
+
+    return master_list
