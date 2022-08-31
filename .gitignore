@@ -1,0 +1,5 @@
+.DS_Store
+.ipynb_checkpoints/
+__pycache__
+cached_games/
+J!_scraper_scrapbook.ipynb
