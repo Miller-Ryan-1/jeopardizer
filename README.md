@@ -75,7 +75,8 @@ While a clue's value typically indicates its difficulty (generally the higher va
 - PIL (Pillow)
 
 #### Directions
-1. Clone the repo: [git clone git@github.com:Miller-Ryan-1/jeopardizer.git].
+1. Clone the repo:: 
+  git clone git@github.com:Miller-Ryan-1/jeopardizer.git
 2. Use the jeopardy_analysis.ipynb Jupyter Notebook to see and perform analysis.
 3. To run quizzlet, go to terminal and when in the directory type 'python quizzlet.py'.
 
