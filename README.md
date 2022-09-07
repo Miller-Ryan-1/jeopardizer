@@ -47,7 +47,7 @@ At this time, there was no modeling performed, so there is no target variable.  
 
 ##### Clue Difficulty Level
 
-While a clue's value typically indicates its difficultly (generally the higher value, the more difficult the question) a binning of difficulties was performed, mostly to make the quizzlet more structured.  The questions were stratified into 6 difficulty levels according to the following algorithm:
+While a clue's value typically indicates its difficulty (generally the higher value, the more difficult the question) a binning of difficulties was performed, mostly to make the quizzlet more structured.  The questions were stratified into 6 difficulty levels according to the following algorithm:
 - Level 1: $200 and $400 questions 
 - Level 2: $600, $800 and $1200 questions
 - Level 3: $1000, $1600 and $2000 questions
@@ -75,7 +75,7 @@ While a clue's value typically indicates its difficultly (generally the higher v
 - PIL (Pillow)
 
 #### Directions
-1. Clone the repo: git clone git@github.com:Miller-Ryan-1/jeopardizer.git.
+1. Clone the repo: [git clone git@github.com:Miller-Ryan-1/jeopardizer.git].
 2. Use the jeopardy_analysis.ipynb Jupyter Notebook to see and perform analysis.
 3. To run quizzlet, go to terminal and when in the directory type 'python quizzlet.py'.
 
@@ -96,7 +96,11 @@ Instruction are straightforward and always displayed in the app during gameplay:
 8. Running stats are kept, showing right total proportion or correct answers, current right answer streak, and difficulty level of questions you are at.
 9. Quit anytime by closing the window.
 
-#### Next Steps
+<hr style="border-top: 10px groove blueviolet; margin-top: 1px; margin-bottom: 1px"></hr>
+
+### Next Steps
+<hr style="border-top: 10px groove blueviolet; margin-top: 1px; margin-bottom: 1px"></hr>
+
 1. Add a PASS button to quizzlet, allowing folks to skip a question.
 2. Standalone app (low priority, plus had issues trying this aleady with py2app).
 3. Web app to run in browsers (would need to transfer logic to flask html framework).
