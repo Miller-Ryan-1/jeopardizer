@@ -104,6 +104,6 @@ Instruction are straightforward and always displayed in the app during gameplay:
 
 1. Add a PASS button to quizzlet, allowing folks to skip a question.
 2. Standalone app (low priority, plus had issues trying this aleady with py2app).
-3. Web app to run in browsers (would need to transfer logic to flask html framework).
+3. Web app to run in browsers (would need to transfer logic to Flask html framework).
 4. NLP Modeling project around question difficulty, to determine which question characteristics lead to triple stumpers or place them in daily doubles.
 5. Continue to improve UI and design of quizzlet.
